@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:orientation="vertical"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="kr.kinow.gpsdemo.MainActivity"
+    tools:showIn="@layout/activity_main"
+    android:weightSum="1">
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="50dp"
+        android:text="WakeUP ME"/>
+
+    <EditText
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:hint="서울시 강남구 봉은사로 119"
+        android:id="@+id/addressText"/>
+
+    <Button
+        android:layout_width="fill_parent"
+        android:layout_height="40dp"
+        android:text="주소 검색"
+        android:id="@+id/addressSearchButton" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="60dp"
+        android:id="@+id/addressLayout">
+    </LinearLayout>
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="위성사진"
+        android:id="@+id/satelliteCheckBox" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left">
+
+        <TextView
+            android:layout_width="30dp"
+            android:layout_height="fill_parent"
+            android:text="위도"/>
+        <EditText
+            android:layout_width="100dp"
+            android:layout_height="fill_parent"
+            android:text=""
+            android:id="@+id/latText" />
+        <TextView
+            android:layout_width="30dp"
+            android:layout_height="fill_parent"
+            android:text="경도"/>
+        <EditText
+            android:layout_width="100dp"
+            android:layout_height="fill_parent"
+            android:text=""
+            android:id="@+id/lngText" />
+    </LinearLayout>
+
+    <Button
+        android:layout_width="fill_parent"
+        android:layout_height="40dp"
+        android:text="위도경도 검색"
+        android:id="@+id/latlngSearchButton" />
+
+    <fragment
+        android:id="@+id/map"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        class="com.google.android.gms.maps.MapFragment" />
+
+</LinearLayout>
