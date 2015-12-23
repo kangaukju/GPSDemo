@@ -39,6 +39,13 @@
         android:id="@+id/addressLayout">
     </LinearLayout>
 
+    <ToggleButton
+        android:layout_width="fill_parent"
+        android:layout_height="40dp"
+        android:checked="true"
+        android:text="추적 중지"
+        android:id="@+id/alaramButton" />
+
     <CheckBox
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

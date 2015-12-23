@@ -12,12 +12,9 @@ import android.location.Address;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Layout;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -25,6 +22,7 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -57,9 +55,12 @@ public class MainActivity extends AppCompatActivity {
     private int DEFAULT_ZOOM_LEVEL = 13;
     private Address wakeupAddress;
     private GEOCoderManager geoCoderManager;
-    private GPSManager gps = null;
+    private GPSManager gps;
     private RepeatViberator repeatViberator;
     private Dialog confirmDlg;
+    private ToggleButton alaramButton;
+    private LocationListener locationListener;
+    private Location wakeupLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +81,9 @@ public class MainActivity extends AppCompatActivity {
             locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             geoCoderManager = new GEOCoderManager(this);
             gps = new GPSManager(mContext);
-            repeatViberator = new RepeatViberator(mContext);
+            repeatViberator = null;
+            alaramButton = (ToggleButton) findViewById(R.id.alaramButton);
+            locationListener = null;
         }
 
         // 주소 검색 시
@@ -103,6 +106,9 @@ public class MainActivity extends AppCompatActivity {
 
                                     // 주소 저장
                                     wakeupAddress = a.getAddress();
+                                    wakeupLocation = new Location("gps");
+                                    wakeupLocation.setLatitude(wakeupAddress.getLatitude());
+                                    wakeupLocation.setLongitude(wakeupAddress.getLongitude());
                                 }
                             });
                             addressLayout.addView(av);
@@ -140,16 +146,40 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        setLocationTracking();
+        alaramButton.setText("추적 중지");
+        locationListener = enableLocationTrackingAlarm();
+        alaramButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (alaramButton.isChecked()) {
+                    alaramButton.setText("추적 중지");
+                    locationListener = enableLocationTrackingAlarm();
+                } else {
+                    alaramButton.setText("추적 시작");
+                    disableLocationTrackingAlarm(locationListener);
+                }
+            }
+        });
     }
 
     public final int GPS_UPDATE_TIME = 1;
-    public final int GPS_UPDATE_DISTANCE = 0;
+    public final int GPS_UPDATE_DISTANCE = 10;
+    private void disableLocationTrackingAlarm(LocationListener locationListener) {
+        if (locationListener != null) {
+            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            locationManager.removeUpdates(locationListener);
+        }
+        if (repeatViberator != null) {
+            repeatViberator.cancel(true);
+            repeatViberator = null;
+        }
+    }
     // 1분마다 위치 추척하여 설정된 위치 근방이면 알림 발생
-    private void setLocationTracking() {
+    private LocationListener enableLocationTrackingAlarm() {
+        LocationListener locationListener = null;
         if (gps.isGetLocation()) {
             LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            LocationListener locationListener = new LocationListener() {
+            locationListener = new LocationListener() {
                 @Override
                 public void onLocationChanged(Location location) {
                     // 위도, 경도 표시 갱신
@@ -159,7 +189,9 @@ public class MainActivity extends AppCompatActivity {
                     lngText.setText(String.valueOf(curLng));
 
                     // 근접 위치 판단
-                    if (wakeupAddress != null) {
+                    if (wakeupAddress != null &&
+                        wakeupLocation != null &&
+                        location.distanceTo(wakeupLocation) < 50) {
                         double lat = wakeupAddress.getLatitude();
                         double lng = wakeupAddress.getLongitude();
 
@@ -183,8 +215,8 @@ public class MainActivity extends AppCompatActivity {
 
                         Log.i(tag, "call change localtion : " + wakeupAddress.getAddressLine(0));
 
-
-                        if (repeatViberator.getStatus() != AsyncTask.Status.FINISHED) {
+                        if (repeatViberator == null) {
+                            repeatViberator = new RepeatViberator(mContext);
                             repeatViberator.execute();
                         }
 
@@ -195,13 +227,18 @@ public class MainActivity extends AppCompatActivity {
                                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
-                                            repeatViberator.cancel(true);
+                                            if (repeatViberator != null) {
+                                                repeatViberator.cancel(true);
+                                                repeatViberator = null;
+                                            }
                                         }
                                     })
                                     .setMessage(wakeupAddress.getAddressLine(0))
                                     .create();
 
-                            confirmDlg.show();
+                            if (mContext != null) {
+                                confirmDlg.show();
+                            }
                         }
                     }
                 }
@@ -224,7 +261,9 @@ public class MainActivity extends AppCompatActivity {
                     GPS_UPDATE_TIME * 1000,
                     GPS_UPDATE_DISTANCE,
                     locationListener);
+
         }
+        return locationListener;
     }
 
     // 위도, 경도에 맞는 위도 위치 이동

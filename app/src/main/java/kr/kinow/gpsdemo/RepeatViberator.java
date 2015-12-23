@@ -18,11 +18,11 @@ public class RepeatViberator extends AsyncTask<String, Void, String> {
 
     @Override
     protected String doInBackground(String... params) {
-        long millisecON = 100;
+        long millisecON = 300;
         long millisecOFF = 100;
         int time = 1;
 
-        long [] vPattern = {millisecON, millisecOFF};
+        long [] vPattern = {0, millisecON, millisecOFF};
 
         while (true) {
             mVibrator.vibrate(vPattern, -1);
